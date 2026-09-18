@@ -150,7 +150,7 @@ const COLOR_MAP = {
 export default function AdvisoryPanel({ advisories = [], onClose }) {
   // Always use the curated static advisories â€” server-generated ones are all
   // templated from the same pattern and appear visually identical.
-  const merged = STATIC_ADVISORIES;
+  const merged = (advisories && advisories.length) ? advisories : STATIC_ADVISORIES;
 
   const [expandedId, setExpandedId] = useState('ADV-001');
   const [executing,  setExecuting]  = useState(null);

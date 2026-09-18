@@ -223,6 +223,15 @@ body {
 /* ─── Leaflet ────────────────────────────────────────────── */
 .leaflet-container { background: var(--app-bg) !important; }
 
+/* Recreates a dark basemap on plain OpenStreetMap tiles (no API key, unlike
+   CARTO's hosted dark style) by inverting and re-tinting the raster image.
+   Standard trick: invert flips light-road/dark-land to dark-road/light-land,
+   then hue-rotate(180) flips the now-wrong hues back to a neutral cool grey. */
+.apm-map-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(90%) saturate(0.3);
+}
+body[data-theme='light'] .apm-map-tiles { filter: none; }
+
 /* ─── Legacy utility classes (keep existing JSX working) ─── */
 .bg-app-dark        { background-color: var(--app-bg) !important; }
 .bg-app-darker      { background-color: var(--app-panel) !important; }
@@ -806,3 +815,484 @@ body[data-theme='light'] .advisory-card [class*="text-white/"] { color: rgba(45,
 }
 .profile-trigger:hover { box-shadow: 0 0 0 3px var(--app-accent-bg); }
 .profile-trigger:active { transform: scale(0.97); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   APM / AIP demo components
+   Built on the existing --app-* token set so they follow both themes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.apm-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-text-faint);
+}
+.apm-card-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--app-text);
+  letter-spacing: 0.01em;
+}
+.apm-card-sub {
+  font-size: 10.5px;
+  color: var(--app-text-faint);
+  margin-top: 2px;
+}
+
+/* ─── Checkpoint provenance tag ─────────────────────────────────────────
+   Every screen states which RFQ demo checkpoints it answers. A demo
+   instrument, not product chrome — it lets the evaluators follow their own
+   rubric while we present. Strip this class to ship. */
+.apm-checkpoint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--app-info);
+  background: var(--app-info-bg);
+  border: 1px solid var(--app-info-border);
+  white-space: nowrap;
+}
+
+/* ─── Formula / working-shown block (Checkpoint E.1) ────────────────────── */
+.apm-formula {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  background: var(--app-surface-soft);
+  border: 1px solid var(--app-border);
+  border-left: 3px solid var(--app-info);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--app-text);
+  overflow-x: auto;
+  line-height: 1.7;
+}
+.apm-formula .op  { color: var(--app-text-faint); padding: 0 4px; }
+.apm-formula .val { color: var(--app-info); font-weight: 700; }
+.apm-formula .res { color: var(--app-warning); font-weight: 700; }
+
+/* ─── Parameter contribution waterfall (Checkpoint C.4) ─────────────────── */
+.apm-waterfall-row {
+  display: grid;
+  grid-template-columns: 116px 1fr 74px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--app-border);
+}
+.apm-waterfall-row:last-child { border-bottom: none; }
+.apm-waterfall-track {
+  height: 20px;
+  background: var(--app-surface-soft);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.apm-waterfall-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px;
+  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.apm-waterfall-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--app-text-muted);
+}
+.apm-waterfall-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-text);
+}
+
+/* ─── Weight slider (Checkpoints C.7 / O.7) ─────────────────────────────── */
+.apm-weight-row {
+  display: grid;
+  grid-template-columns: 1fr 96px 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--app-border);
+}
+.apm-weight-row:last-child { border-bottom: none; }
+.apm-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 3px;
+  background: var(--app-surface-raised);
+  outline: none;
+  cursor: pointer;
+}
+.apm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--app-info);
+  border: 2px solid var(--app-panel);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.apm-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--app-info);
+  border: 2px solid var(--app-panel);
+  cursor: pointer;
+}
+.apm-slider:focus-visible { outline: 2px solid var(--app-info); outline-offset: 3px; }
+
+/* ─── Score dial ────────────────────────────────────────────────────────── */
+.apm-dial-value {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ─── Data tables ───────────────────────────────────────────────────────── */
+.apm-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.apm-table th {
+  text-align: left;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--app-text-faint);
+  padding: 9px 10px;
+  background: var(--app-surface-soft);
+  border-bottom: 1px solid var(--app-border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+.apm-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--app-border);
+  color: var(--app-text-muted);
+  vertical-align: middle;
+}
+.apm-table tbody tr:hover { background: var(--app-surface-soft); }
+.apm-table tbody tr.is-selected { background: var(--app-info-bg); }
+.apm-table .num {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.apm-table .asset-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+/* ─── Status pill ───────────────────────────────────────────────────────── */
+.apm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2.5px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.apm-pill .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+/* ─── Risk heat map (Checkpoint E.7) ────────────────────────────────────── */
+.apm-heatgrid {
+  display: grid;
+  grid-template-columns: 62px repeat(5, 1fr);
+  gap: 3px;
+}
+.apm-heatcell {
+  aspect-ratio: 1.9;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.apm-heatcell:hover { transform: scale(1.05); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); z-index: 2; }
+.apm-heatcell span { font-size: 8px; font-weight: 600; opacity: 0.82; letter-spacing: 0.04em; }
+.apm-heataxis {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--app-text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Hierarchy tree (Checkpoint B.1) ───────────────────────────────────── */
+.apm-tree { font-size: 11.5px; }
+.apm-tree-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.apm-tree-node:hover { background: var(--app-surface-soft); }
+.apm-tree-node.is-asset { background: var(--app-info-bg); }
+.apm-tree-type {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  background: var(--app-surface-raised);
+  color: var(--app-text-faint);
+  flex-shrink: 0;
+}
+.apm-tree-label { font-weight: 600; color: var(--app-text); }
+.apm-tree-meta { font-size: 10px; color: var(--app-text-faint); }
+.apm-tree-children {
+  margin-left: 13px;
+  padding-left: 11px;
+  border-left: 1px dashed var(--app-border);
+}
+body[data-theme="dark"] .apm-tree-children { border-left-color: rgba(255, 255, 255, 0.10); }
+
+/* ─── Tabs ──────────────────────────────────────────────────────────────── */
+.apm-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--app-border); flex-wrap: wrap; }
+.apm-tab {
+  padding: 8px 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--app-text-faint);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.apm-tab:hover { color: var(--app-text-muted); }
+.apm-tab.is-active { color: var(--app-text); border-bottom-color: var(--app-info); }
+
+/* ─── Scenario preset buttons (Checkpoint J) ────────────────────────────── */
+.apm-scenario-btn {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  line-height: 1.35;
+  width: 100%;
+}
+.apm-scenario-btn:hover { border-color: var(--app-info-border); color: var(--app-text); }
+.apm-scenario-btn.is-active {
+  background: var(--app-info-bg);
+  border-color: var(--app-info);
+  color: var(--app-text);
+}
+.apm-scenario-btn small { display: block; font-size: 9.5px; font-weight: 500; color: var(--app-text-faint); margin-top: 2px; }
+
+/* ─── Delta indicator ───────────────────────────────────────────────────── */
+.apm-delta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.apm-delta.up   { color: var(--app-success); }
+.apm-delta.down { color: var(--app-danger); }
+
+/* ─── Scrollable region ─────────────────────────────────────────────────── */
+.apm-scroll { overflow-y: auto; overflow-x: auto; }
+.apm-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
+
+/* ─── Compact form controls (Sections P and Q) ──────────────────────────── */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.apm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.apm-btn:hover:not(:disabled) { border-color: var(--app-info); color: var(--app-text); }
+.apm-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+.apm-btn.is-active {
+  background: var(--app-info-bg);
+  border-color: var(--app-info);
+  color: var(--app-text);
+}
+.apm-btn.is-primary {
+  background: var(--app-btn);
+  border-color: transparent;
+  color: var(--app-btn-text);
+  padding: 7px 13px;
+  font-size: 11px;
+}
+.apm-btn.is-primary:hover:not(:disabled) { background: var(--app-btn-hover); color: var(--app-btn-text); }
+
+.apm-chip {
+  padding: 3.5px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--app-border);
+  background: transparent;
+  color: var(--app-text-faint);
+  font-size: 9.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.apm-chip:hover { border-color: var(--app-info-border); color: var(--app-text-muted); }
+.apm-chip.is-active {
+  background: var(--app-info-bg);
+  border-color: var(--app-info);
+  color: var(--app-info);
+}
+
+.apm-input,
+.apm-select {
+  background: var(--app-bg);
+  border: 1px solid var(--app-border);
+  border-radius: 7px;
+  padding: 6px 9px;
+  font-size: 11px;
+  color: var(--app-text);
+  outline: none;
+  font-family: inherit;
+}
+.apm-input:focus,
+.apm-select:focus { border-color: var(--app-accent-border); }
+.apm-input::placeholder { color: var(--app-text-faint); }
+.apm-select { cursor: pointer; }
+
+/* ─── Print / PDF export (Checkpoint P.8) ───────────────────────────────────
+   The PDF path deliberately uses the browser's own print pipeline rather than
+   a bundled PDF library: what prints is exactly the table that was generated,
+   with nothing re-serialised in between. */
+.apm-print-root { display: none; }
+
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+
+  body * { visibility: hidden !important; }
+  .apm-print-root,
+  .apm-print-root * { visibility: visible !important; }
+
+  .apm-print-root {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #fff;
+    color: #000;
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  .apm-print-root h1 { font-size: 15pt; font-weight: 700; margin: 0 0 4pt; }
+  .apm-print-root .meta { font-size: 8pt; color: #444; margin: 0 0 6pt; max-width: 100%; }
+  .apm-print-root table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+  .apm-print-root th,
+  .apm-print-root td { border: 1px solid #999; padding: 2.5pt 4pt; text-align: left; }
+  .apm-print-root th { background: #eceff3; font-weight: 700; }
+  .apm-print-root th.num,
+  .apm-print-root td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .apm-print-root thead { display: table-header-group; }
+  .apm-print-root tr { page-break-inside: avoid; }
+}
+
+/* ─── Responsive behaviour (Checkpoint H.7) ─────────────────────────────────
+   The analysis screens are laid out as explicit two-column splits with pixel
+   minimums, because on a desk that is the right shape for "evidence beside the
+   thing it explains". Below roughly a laptop width those minimums stop being
+   a layout and start being a horizontal scrollbar, so they collapse to a single
+   column here.
+
+   The selector deliberately targets the inline style rather than a class: every
+   split on every screen is written as an inline gridTemplateColumns, so one rule
+   covers all of them and no page can be added that quietly forgets to opt in.
+   !important is required for the same reason — it is overriding an inline style,
+   which is the one case where it is the correct tool rather than a shortcut. */
+
+@media (max-width: 1180px) {
+  div.grid[style*="minmax"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Tables stay readable by scrolling inside their own container, never by
+   widening the page. .apm-scroll already sets overflow-x; this guarantees the
+   table itself is allowed to exceed the panel instead of crushing its columns. */
+@media (max-width: 900px) {
+  .apm-scroll > table.apm-table { min-width: 620px; }
+
+  /* Charts get shorter on small screens so a panel does not fill the viewport */
+  .apm-chart-box { height: 200px !important; }
+
+  /* Tab strips wrap rather than overflow */
+  .apm-tabs { flex-wrap: wrap; }
+}
+
+/* Phone: the KPI row is already a Tailwind responsive grid, but the page
+   padding and the fixed-height panels need to relax too. */
+@media (max-width: 640px) {
+  .apm-scroll { max-height: 340px !important; }
+  .apm-formula { font-size: 10px; word-break: break-word; }
+  .apm-waterfall-row { grid-template-columns: 1fr; gap: 3px; }
+  .apm-waterfall-value { text-align: left; }
+}
+
+/* Below the sidebar breakpoint the shell gives the content the full width;
+   Layout collapses the sidebar to its icon rail at the same point. */
+@media (max-width: 860px) {
+  :root { --app-sidebar-w: 60px; }
+}
+
+/* ─── Light-theme corrections for APM surfaces ──────────────────────────── */
+body[data-theme="light"] .apm-table th { background: #f1f5f9; }
+body[data-theme="light"] .apm-formula  { background: #f8fafc; }
+body[data-theme="light"] .apm-slider   { background: #cbd5e1; }
