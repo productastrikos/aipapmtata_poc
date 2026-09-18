@@ -1,13 +1,14 @@
 /* Risk Cockpit — Section E of the checkpoint sheet.
    E.1 ARI calculation with the arithmetic visible, E.2/E.3 PoF and CoF
-   build-up, E.4 risk monetisation, E.6 enterprise dashboard, E.7 heat map,
-   E.8 ranking. */
+   build-up, E.4 risk monetisation, E.5 risk trend, E.6 enterprise dashboard,
+   E.7 heat map, E.8 ranking. */
 
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApm } from '../services/apmStore';
 import { CLASS_LABEL } from '../data/network';
 import { fmtCr, fmtInt, healthBand, RISK_BANDS } from '../engines/indices';
+import { fleetTrend } from '../engines/trend';
 import { Panel, PageHead, RiskPill, BarRow } from '../components/apmUi';
 import KPICard, { IcoDollar, IcoFire, IcoBolt, IcoScale, IcoBarChart, IcoShield }
   from '../components/KPICard';
@@ -45,7 +46,7 @@ function cellColor(score) {
 
 export default function RiskCockpit() {
   const navigate = useNavigate();
-  const { fleet, summary, selectedId, setSelectedId, detailFor } = useApm();
+  const { fleet, summary, selectedId, setSelectedId, detailFor, healthWeights, aciWeights } = useApm();
   const [cell, setCell] = useState(null);
   const [selectedKPIDetail, setSelectedKPIDetail] = useState(null);
   const showKPIDetail = (data) => setSelectedKPIDetail(data);
@@ -197,6 +198,9 @@ export default function RiskCockpit() {
         </Panel>
       )}
 
+      {/* ─── Risk trend — Checkpoint E.5 ───────────────────────────────── */}
+      <RiskTrendPanel fleet={fleet} healthWeights={healthWeights} aciWeights={aciWeights} />
+
       {/* ─── Heat map + ranking ────────────────────────────────────────── */}
       <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(360px, 1fr) minmax(400px, 1.25fr)' }}>
         <Panel title="Enterprise risk heat map" checkpoints="E.6 · E.7"
@@ -318,5 +322,128 @@ export default function RiskCockpit() {
         </Panel>
       </div>
     </div>
+  );
+}
+
+/* ═══ Risk trend — Checkpoint E.5 ══════════════════════════════════════════
+   The series is not stored. Each year is a full re-evaluation of the fleet
+   with the asset re-aged, its condition moved along its own degradation rate
+   and its connected load grown, so changing a weight on the Health Workbench
+   moves this chart too.
+
+   The bar strip underneath answers the question the line alone cannot: risk
+   is a product, PoF × CoF, so a rising curve could be ageing plant or growing
+   load. Holding each factor at today's value in turn separates them exactly. */
+function RiskTrendPanel({ fleet, healthWeights, aciWeights }) {
+  const trend = useMemo(
+    () => fleetTrend(fleet.rows.map((r) => r.asset), healthWeights, aciWeights),
+    [fleet, healthWeights, aciWeights]
+  );
+
+  const { series, today, end } = trend;
+  const max = Math.max(...series.map((s) => s.totalARI));
+  const min = Math.min(...series.map((s) => s.totalARI));
+  const span = Math.max(max - min, 0.001);
+
+  const H = 150;
+  const W = 640;
+  const x = (i) => (i / (series.length - 1)) * W;
+  const y = (v) => H - ((v - min) / span) * (H - 16) - 8;
+
+  const line = series.map((s, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(s.totalARI).toFixed(1)}`).join(' ');
+  const todayIdx = series.findIndex((s) => s.offset === 0);
+
+  const att = end.attribution;
+  const attRows = [
+    { label: 'Ageing and condition', value: att.condition, color: '#dc2626',
+      note: 'Weibull hazard rising with age, condition moving at each asset\u2019s measured degradation rate' },
+    { label: 'Load growth', value: att.consequence, color: '#d97706',
+      note: `Consumers +${(trend.assumptions.consumerCAGR * 100).toFixed(1)}%/yr, demand +${(trend.assumptions.demandCAGR * 100).toFixed(1)}%/yr` },
+    { label: 'Interaction', value: att.interaction, color: '#6366f1',
+      note: 'The part neither factor explains alone \u2014 reported, not absorbed' },
+  ];
+  const attScale = Math.max(...attRows.map((r) => Math.abs(r.value)), 0.001);
+
+  return (
+    <Panel
+      title="Risk trend and its drivers"
+      checkpoints="E.5 · D.9"
+      sub={`Fleet exposure ${series[0].year}\u2013${end.year} \u2014 ${fmtInt(fleet.rows.length)} assets re-evaluated at each point`}
+      right={
+        <span className="apm-chip" style={{ color: 'var(--app-text-faint)' }}>
+          {trend.computeMs.toFixed(0)} ms
+        </span>
+      }
+    >
+      <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(320px, 1.5fr) minmax(280px, 1fr)' }}>
+        <div>
+          <div style={{ overflowX: 'auto' }}>
+            <svg viewBox={`0 0 ${W} ${H + 22}`} style={{ width: '100%', minWidth: 320, height: 190 }} role="img"
+                 aria-label="Fleet risk exposure by year">
+              {/* Reconstructed half of the series is shaded, so an evaluator is
+                  never invited to read inferred history as measured history. */}
+              <rect x="0" y="0" width={x(todayIdx)} height={H} fill="var(--app-text-faint)" opacity="0.07" />
+              <line x1={x(todayIdx)} y1="0" x2={x(todayIdx)} y2={H} stroke="var(--app-text-faint)" strokeWidth="1" strokeDasharray="3 3" />
+              <path d={line} fill="none" stroke="var(--app-danger)" strokeWidth="2" />
+              {series.map((s, i) => (
+                <circle key={s.year} cx={x(i)} cy={y(s.totalARI)} r={s.offset === 0 ? 4 : 2.5}
+                        fill={s.offset === 0 ? 'var(--app-text)' : 'var(--app-danger)'} />
+              ))}
+              {series.map((s, i) => (
+                (i % 2 === 0 || s.offset === 0) && (
+                  <text key={s.year} x={x(i)} y={H + 16} textAnchor="middle" fontSize="9"
+                        fill="var(--app-text-faint)">{s.year}</text>
+                )
+              ))}
+            </svg>
+          </div>
+          <div className="flex items-center gap-4 mt-1 text-[9.5px]" style={{ color: 'var(--app-text-faint)' }}>
+            <span>Shaded \u2014 reconstructed from degradation rates, not archived readings</span>
+            <span>Unshaded \u2014 projected under stated assumptions</span>
+          </div>
+
+          <div className="apm-formula mt-3">
+            Exposure <span className="op">=</span> today{' '}
+            <span className="val">{fmtCr(today.totalARI, 0)}/yr</span>
+            <span className="op">&rarr;</span> {end.year}{' '}
+            <span className="val">{fmtCr(end.totalARI, 0)}/yr</span>
+            <span className="op">=</span>{' '}
+            <span className="res">+{(trend.riskCAGR * 100).toFixed(1)}% a year</span>
+          </div>
+        </div>
+
+        <div>
+          <p className="apm-eyebrow mb-2" style={{ fontSize: 9 }}>
+            What moves exposure by {end.year}
+          </p>
+          {attRows.map((r) => (
+            <div key={r.label} className="mb-2.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[10.5px]" style={{ color: 'var(--app-text-muted)' }}>{r.label}</span>
+                <span className="text-[11px] font-bold" style={{ color: r.color, fontVariantNumeric: 'tabular-nums' }}>
+                  {r.value >= 0 ? '+' : '\u2212'}{fmtCr(Math.abs(r.value), 1)}
+                </span>
+              </div>
+              <div style={{ height: 5, background: 'var(--app-border)', borderRadius: 3, marginTop: 3 }}>
+                <div style={{ width: `${(Math.abs(r.value) / attScale) * 100}%`, height: '100%', background: r.color, borderRadius: 3 }} />
+              </div>
+              <p className="text-[9px] mt-1 leading-snug" style={{ color: 'var(--app-text-faint)' }}>{r.note}</p>
+            </div>
+          ))}
+
+          <div className="flex items-baseline justify-between gap-2 pt-2 mt-1 border-t border-app-border">
+            <span className="text-[11px] font-bold" style={{ color: 'var(--app-text)' }}>Total change</span>
+            <span className="text-[13px] font-bold" style={{ color: 'var(--app-danger)', fontVariantNumeric: 'tabular-nums' }}>
+              +{fmtCr(att.total, 1)}/yr
+            </span>
+          </div>
+
+          <p className="text-[9.5px] mt-2 leading-relaxed" style={{ color: 'var(--app-text-faint)' }}>
+            Assets in the extreme band go from {fmtInt(today.extreme)} to {fmtInt(end.extreme)} over the same period.
+            {' '}{trend.assumptions.note}
+          </p>
+        </div>
+      </div>
+    </Panel>
   );
 }

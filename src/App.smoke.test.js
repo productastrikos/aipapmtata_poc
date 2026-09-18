@@ -25,6 +25,7 @@ jest.mock('react-leaflet', () => ({
 }));
 
 import { ApmProvider } from './services/apmStore';
+import { RoleProvider } from './services/roleContext';
 import { SocketProvider } from './services/socket';
 import Layout from './components/Layout';
 import CommandCentre from './pages/CommandCentre';
@@ -34,13 +35,18 @@ import RiskCockpit from './pages/RiskCockpit';
 import InvestmentPlanning from './pages/InvestmentPlanning';
 import NetworkMap from './pages/NetworkMap';
 
+/* Provider order mirrors App.js exactly. Screens read role from context to
+   decide what they may write, so a wrapper that omits RoleProvider tests a
+   composition the app never renders. */
 const wrap = (ui) =>
   render(
-    <ApmProvider>
-      <SocketProvider>
-        <MemoryRouter>{ui}</MemoryRouter>
-      </SocketProvider>
-    </ApmProvider>
+    <RoleProvider>
+      <ApmProvider>
+        <SocketProvider>
+          <MemoryRouter>{ui}</MemoryRouter>
+        </SocketProvider>
+      </ApmProvider>
+    </RoleProvider>
   );
 
 describe('APM/AIP demo screens', () => {
@@ -148,11 +154,13 @@ describe('APM/AIP demo screens', () => {
     expect(screen.getAllByText('₹104 Cr').length).toBeGreaterThan(0);
   });
 
-  test('Regulatory tab derives an ARR and tariff impact — Section K', () => {
+  test('Regulatory tab derives an ARR, tariff and wheeling impact — Section K', () => {
     wrap(<InvestmentPlanning />);
     fireEvent.click(screen.getByText(/Regulatory & ARR · Section K/));
     expect(screen.getByText('Total ARR impact')).toBeInTheDocument();
-    expect(screen.getByText(/paise \/ kWh/)).toBeInTheDocument();
+    // Both the tariff formula and the wheeling formula (Checkpoint K.3) end in paise/kWh
+    expect(screen.getAllByText(/paise \/ kWh/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/Wheeling impact/).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Export Justification Pack')).toBeInTheDocument();
   });
 

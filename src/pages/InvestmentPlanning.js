@@ -440,6 +440,7 @@ function RegulatoryTab({ portfolio, baseline }) {
   const {
     capex, equity, debt, returnOnEquity, interestCost,
     depreciation, arr: arrImpact, tariffPaise: tariffImpact,
+    wireARR, wheelingPaise, wheeledShare,
   } = arrModel;
 
   const rows = [
@@ -449,12 +450,13 @@ function RegulatoryTab({ portfolio, baseline }) {
     ['Return on equity', fmtCr(returnOnEquity, 2), 'Annual'],
     ['Interest on loan capital', fmtCr(interestCost, 2), 'Annual'],
     ['Depreciation', fmtCr(depreciation, 2), `At ${(DEPRECIATION * 100).toFixed(2)}% straight line`],
+    ['Wires-business share of ARR', fmtCr(wireARR, 2), `${(ARR_PARAMS.wireShare * 100).toFixed(0)}% allocated to the wheeling business`],
   ];
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4" style={{ gridTemplateColumns: 'minmax(380px, 1.3fr) minmax(310px, 1fr)' }}>
-        <Panel title="Aggregate Revenue Requirement impact" checkpoints="K.1 · K.5"
+        <Panel title="Aggregate Revenue Requirement impact" checkpoints="K.1 · K.2 · K.3 · K.5"
                sub="Revenue requirement arising from the funded investment portfolio">
           <div className="space-y-2">
             {rows.map(([k, v, note]) => (
@@ -479,6 +481,23 @@ function RegulatoryTab({ portfolio, baseline }) {
             <span className="op">÷</span> sales <span className="val">{fmtInt(ARR_PARAMS.salesMU)} MU</span>
             <span className="op">=</span> <span className="res">{tariffImpact.toFixed(2)} paise / kWh</span>
           </div>
+
+          <div className="apm-formula mt-2">
+            Wheeling impact <span className="op">=</span> wires ARR{' '}
+            <span className="val">₹{wireARR.toFixed(2)} Cr</span>
+            <span className="op">÷</span> wheeled{' '}
+            <span className="val">{fmtInt(ARR_PARAMS.wheeledMU)} MU</span>
+            <span className="op">=</span>{' '}
+            <span className="res">{wheelingPaise.toFixed(2)} paise / kWh</span>
+          </div>
+
+          <p className="text-[10px] mt-2 leading-relaxed" style={{ color: 'var(--app-text-faint)' }}>
+            The wheeling charge recovers only the wires-business share of the revenue requirement, and it is spread
+            across the {fmtInt(ARR_PARAMS.wheeledMU)} MU moved under open access rather than across total sales —{' '}
+            {(wheeledShare * 100).toFixed(1)}% of the energy on the network. Both denominators matter: quoting the
+            retail tariff impact as though it were the wheeling impact understates what an open-access consumer sees
+            by {(wheelingPaise / Math.max(tariffImpact, 0.0001)).toFixed(1)}×.
+          </p>
         </Panel>
 
         <div className="space-y-4">
@@ -491,6 +510,7 @@ function RegulatoryTab({ portfolio, baseline }) {
                 ['Benefit-cost ratio', `${(portfolio.riskBoughtDown * 12 / Math.max(portfolio.spend, 1)).toFixed(2)}×`, 'good'],
                 ['Consumers protected', fmtInt(portfolio.selected.reduce((s, c) => s + c.asset.impact.consumers, 0)), null],
                 ['Tariff impact', `${tariffImpact.toFixed(2)} p/kWh`, 'warn'],
+                ['Wheeling impact', `${wheelingPaise.toFixed(2)} p/kWh`, 'warn'],
                 ['Reliability gain', `${Math.abs(portfolio.saidiDelta).toFixed(0)} SAIDI min/yr`, 'good'],
               ].map(([k, v, tone]) => (
                 <div key={k} className="flex items-baseline justify-between gap-2">
@@ -511,6 +531,7 @@ function RegulatoryTab({ portfolio, baseline }) {
                 `Capital: ₹${portfolio.spend.toFixed(1)} Cr\n` +
                 `ARR impact: ₹${arrImpact.toFixed(2)} Cr/yr\n` +
                 `Tariff impact: ${tariffImpact.toFixed(2)} paise/kWh\n` +
+                `Wheeling impact: ${wheelingPaise.toFixed(2)} paise/kWh\n` +
                 `Risk retired: ₹${portfolio.riskBoughtDown.toFixed(1)} Cr/yr\n\n` +
                 'PDF and Excel export are wired to the reporting service in the full build (Checkpoints P.5, P.6).'
               )}

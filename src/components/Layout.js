@@ -310,34 +310,31 @@ export default function Layout({ children, user, onLogout, theme = 'dark', onThe
       >
         {/* Logo row */}
         <div
-          className="flex items-center gap-3 px-4 cursor-pointer shrink-0 border-b border-app-border"
+          className="flex items-center px-3 cursor-pointer shrink-0 border-b border-app-border"
           style={{ height: 'var(--app-header-h, 62px)' }}
           onClick={() => navigate('/')}
         >
-          {/* Astrikos logo — clip transparent padding so visible content fills the container */}
-          <div style={{
-            height: sidebarOpen ? 76 : 60,
-            overflow: 'hidden',
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'flex-start',
-            transition: 'height 0.2s ease',
-          }}>
-            <img
-              src="/Logo Transparent Horizontal.png"
-              alt="Astrikos"
-              style={{
-                /* scale up so the ~63% visible-content band fills the container height */
-                height: sidebarOpen ? 120 : 96,
-                /* shift up to skip the ~17% top transparent padding */
-                marginTop: sidebarOpen ? -20 : -16,
-                width: 'auto',
-                display: 'block',
-                filter: 'var(--app-logo-filter, none)',
-                
-              }}
-            />
-          </div>
+          {/* Partner lockup ships on an opaque white background, so it sits on a
+              white card rather than directly on the dark sidebar. Collapsed to
+              the icon rail there is no room to keep it legible, so it hides —
+              matching how nav labels already hide in that state. */}
+          {sidebarOpen && (
+            <div style={{
+              width: '100%',
+              background: '#fff',
+              borderRadius: 8,
+              padding: '8px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <img
+                src="/partner-logo.png"
+                alt="AVEVA / Schneider Electric"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Nav */}
