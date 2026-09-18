@@ -6,7 +6,6 @@ import { RoleProvider } from './services/roleContext';
 import { Chart as ChartJS } from 'chart.js';
 
 import Layout from './components/Layout';
-import PlatformArchitecture from './pages/PlatformArchitecture';
 import CommandCentre from './pages/CommandCentre';
 import AssetRegistry from './pages/AssetRegistry';
 import HealthWorkbench from './pages/HealthWorkbench';
@@ -50,7 +49,6 @@ function App() {
             <Layout user={DEMO_USER} theme={theme} onThemeToggle={handleThemeToggle}>
               <Routes>
                 <Route path="/"            element={<CommandCentre />} />
-                <Route path="/architecture" element={<PlatformArchitecture />} />
                 <Route path="/registry"    element={<AssetRegistry />} />
                 <Route path="/health"      element={<HealthWorkbench />} />
                 <Route path="/risk"        element={<RiskCockpit />} />

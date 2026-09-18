@@ -10,7 +10,6 @@ const NAV_SECTIONS = [
     label: 'Overview',
     items: [
       { path: '/', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4', label: 'Command Centre' },
-      { path: '/architecture', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', label: 'Platform Architecture' },
     ],
   },
   {
@@ -85,15 +84,6 @@ const SEARCH_INDEX = [
 
   /* Map */
   { label:'Network Map',           path:'/map',        breadcrumb:['Network Map'],                       icon:'MAP',   keywords:'gis map geographic substations risk heat failure impact radius leaflet' },
-
-  /* Platform Architecture - Section A */
-  { label:'Platform Architecture', path:'/architecture', breadcrumb:['Platform Architecture'],           icon:'BOX',   keywords:'architecture solution platform aveva saap layers cots technology stack cloud deployment topology' },
-  { label:'Technology Stack',      path:'/architecture', breadcrumb:['Platform Architecture','Stack'],   icon:'BOX',   keywords:'technology stack components dependencies standards iso iec versions libraries' },
-  { label:'Cloud Architecture',    path:'/architecture', breadcrumb:['Platform Architecture','Cloud'],   icon:'GLOBE', keywords:'cloud deployment vnet azure aws india resident saas hosting subnet topology' },
-  { label:'High Availability',     path:'/architecture', breadcrumb:['Platform Architecture','Cloud'],   icon:'SHIELD',keywords:'high availability redundancy failover rpo rto disaster recovery uptime sla 99.5' },
-  { label:'Scalability',           path:'/architecture', breadcrumb:['Platform Architecture','Scale'],   icon:'TREND', keywords:'scalability horizontal vertical scaling capacity volumetrics throughput 20000 gb ingest rate' },
-  { label:'Data Processing',       path:'/architecture', breadcrumb:['Platform Architecture','Scale'],   icon:'SIGNAL',keywords:'real time batch near real time streaming micro batch latency processing framework' },
-  { label:'API Framework',         path:'/architecture', breadcrumb:['Platform Architecture','API'],     icon:'LINK',  keywords:'api framework rest endpoints catalogue openapi versioning authentication error codes' },
 
   /* Model Governance - Section F */
   { label:'Model Governance',      path:'/models',      breadcrumb:['Model Governance'],                 icon:'BAR',   keywords:'model governance ml ai registry training retraining drift accuracy explainability glass box' },
@@ -187,7 +177,6 @@ const PAGE_TITLES = {
   '/risk':       'Risk Cockpit',
   '/investment': 'Investment Planning',
   '/map':        'Network Map',
-  '/architecture':'Platform Architecture',
   '/reliability':'Reliability & Maintenance',
   '/models':     'Model Governance',
   '/reporting':  'Reporting & Analytics',
@@ -329,7 +318,7 @@ export default function Layout({ children, user, onLogout, theme = 'dark', onThe
               justifyContent: 'center',
             }}>
               <img
-                src="/partner-logo.png"
+                src="/logo.png"
                 alt="AVEVA / Schneider Electric"
                 style={{ width: '100%', height: 'auto', display: 'block' }}
               />
